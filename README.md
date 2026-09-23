@@ -32,7 +32,13 @@ Ensure the following are installed on your system:
   EMBEDDING_MODEL_PATH=./models/minilm/model.onnx
   EMBEDDING_TOKENIZER_PATH=./models/minilm/tokenizer.json
   ```
-- **Hardware Acceleration**: CPU is used by default. For CUDA acceleration, follow the [LLAMA_CPP_CUDA.md](./docs/LLAMA_CPP_CUDA.md) guide.
+- **Hardware profiles**: the sample `.env.example` is CPU-safe
+  (`LLAMA_N_GPU_LAYERS=0`, `LLAMA_N_CTX=8192`). A quantized model needs roughly
+  its file size in RAM plus the KV cache for the chosen context; lower
+  `LLAMA_N_CTX` first when memory is tight. For CUDA, build `llama-cpp-python`
+  with GPU support (see [LLAMA_CPP_CUDA.md](./docs/LLAMA_CPP_CUDA.md)), set
+  `LLAMA_N_GPU_LAYERS=-1`, and verify offload in the `lm-service` log or with
+  `nvidia-smi` while the model loads.
 
 ### Launching the Project
 

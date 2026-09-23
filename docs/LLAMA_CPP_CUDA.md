@@ -12,3 +12,12 @@ This is a short guide how I got CUDA installed and compiled `llama-cpp-python` w
    ```bash
    CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc" FORCE_CMAKE=1 uv pip install --no-cache-dir --force-reinstall --compile-bytecode llama-cpp-python
    ```
+
+## Verify GPU offload
+
+After `./hinkali.sh --launch`:
+
+- `grep -i offloaded logs/lm_service.log` — llama.cpp reports how many layers
+  moved to the GPU while loading the model.
+- `nvidia-smi` — the `lm-service` Python process holds VRAM once the model is
+  loaded.

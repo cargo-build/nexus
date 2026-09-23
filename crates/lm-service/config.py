@@ -16,8 +16,6 @@ class Settings(BaseSettings):
 
     model_name: str = Field(alias="MODEL_NAME")
     model_path: str = Field(alias="MODEL_PATH")
-    device: str = Field(alias="DEVICE")
-    torch_dtype: str = Field(alias="TORCH_DTYPE")
 
     n_gpu_layers: int = Field(alias="LLAMA_N_GPU_LAYERS")
     n_ctx: int = Field(alias="LLAMA_N_CTX")
