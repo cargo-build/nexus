@@ -9,11 +9,14 @@ In the future, it will be decomposed into microservices.
 
 ## Cascade RAG
 RAG is not a task that requires an iterative agentic loop. There is an algorithm for how humans process information, and the agent should follow the same approach.
-Furthermore, this project focuses on local pipelines. Local quantized models have a known tendency to fall into infinite loops. The cascade pipeline addresses both of these issues.
 
-The pipeline executes exactly two LLM calls:
-1. Pre-retrieval: analyzes intent, identifies information gaps, may call one tool
-2. Post-retrieval: evaluates retrieved context, generates final answer
+Local quantized models tend to loop when a step has no structural stop condition. The cascade bounds the response path: every step must return schema-valid JSON, and the pipeline executes at most two steps.
+
+The pipeline executes one or two LLM calls for a RAG answer:
+1. Pre-retrieval: analyzes intent, identifies information gaps, may call one tool — or answers directly
+2. Post-retrieval: runs when pre-retrieval requests retrieval; evaluates the retrieved context and generates the final answer
+
+Conversation summarization is a separate LLM call made in the background by the memory update (see [Memory](#memory)); it is not part of the response path.
 
 ## Memory
 Message history is stored as BSON documents in MongoDB. Messages have a complex structure (tool calls, subagents in the future), so relational SQL-like databases are not suitable here.
