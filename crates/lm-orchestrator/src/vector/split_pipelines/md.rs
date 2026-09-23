@@ -338,3 +338,105 @@ where
     flatten_and_chunk(&tree, &mut path, &mut chunks, &count_tokens);
     chunks
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Example from docs/ARCHITECTURE.md ("Documents"). Counts words instead
+    /// of tokens to keep the example readable; the boundaries follow the same
+    /// code path as the tokenizer-counted production run.
+    const EXAMPLE_DOC: &str = "\
+# Gradients
+
+A gradient points in the direction of the steepest increase of a function.
+
+## Stochastic gradient descent
+
+Stochastic gradient descent estimates the gradient from a random subset of the
+training data. The subset is called a batch, and its size trades noise for
+throughput: smaller batches produce noisier steps but more updates per epoch,
+while larger batches give smoother estimates at a proportionally higher cost.
+Because every update depends on only a few examples, the method scales to
+datasets that do not fit in memory. The noise is not only tolerated: it also
+pushes parameters away from sharp minima, which often improves generalization.
+Implementations typically shuffle the data once per epoch and decay the
+learning rate as training progresses. Momentum and adaptive step sizes reduce
+the sensitivity to that choice. The estimate is computed from a single batch
+rather than the full dataset, so each step costs a fraction of a full gradient
+evaluation.
+
+The mini-batch estimate is biased in theory but effective in practice.
+Averaging the gradient over more examples reduces its variance, yet the
+computational cost grows linearly with the batch size. Hardware favors batches
+that fill a cache line or a GPU wave, so the chosen size is often the largest
+one that still fits the memory budget. Batch sizes also interact with
+normalization layers and learning-rate schedules, so tuning them together is
+usually necessary. A batch that is too small leaves the hardware idle and makes
+the loss curve jump; one that is too large converges in fewer, more expensive
+steps without improving the final loss. Practical guidance is to pick the
+largest batch that trains stably, then adjust the learning rate and the
+schedule to match.
+";
+
+    const EXPECTED_CHUNK_1: &str = "\
+# gradients.md
+
+# Gradients
+
+A gradient points in the direction of the steepest increase of a function.";
+
+    const EXPECTED_CHUNK_2: &str = "\
+# gradients.md
+
+# Gradients
+
+## Stochastic gradient descent
+Stochastic gradient descent estimates the gradient from a random subset of the
+training data.
+The subset is called a batch, and its size trades noise for
+throughput: smaller batches produce noisier steps but more updates per epoch,
+while larger batches give smoother estimates at a proportionally higher cost.
+Because every update depends on only a few examples, the method scales to
+datasets that do not fit in memory.
+The noise is not only tolerated: it also
+pushes parameters away from sharp minima, which often improves generalization.
+Implementations typically shuffle the data once per epoch and decay the
+learning rate as training progresses.
+Momentum and adaptive step sizes reduce
+the sensitivity to that choice.
+The estimate is computed from a single batch
+rather than the full dataset, so each step costs a fraction of a full gradient
+evaluation.
+The mini-batch estimate is biased in theory but effective in practice.
+Averaging the gradient over more examples reduces its variance, yet the
+computational cost grows linearly with the batch size.
+Hardware favors batches
+that fill a cache line or a GPU wave, so the chosen size is often the largest
+one that still fits the memory budget.
+Batch sizes also interact with
+normalization layers and learning-rate schedules, so tuning them together is
+usually necessary.
+A batch that is too small leaves the hardware idle and makes
+the loss curve jump; one that is too large converges in fewer, more expensive
+steps without improving the final loss.";
+
+    const EXPECTED_CHUNK_3: &str = "\
+Practical guidance is to pick the
+largest batch that trains stably, then adjust the learning rate and the
+schedule to match.";
+
+    fn word_count(text: &str) -> usize {
+        text.split_whitespace().count()
+    }
+
+    #[test]
+    fn architecture_example_chunks() {
+        let chunks = split_md_doc(EXAMPLE_DOC, "gradients.md", &word_count);
+
+        assert_eq!(chunks.len(), 3);
+        assert_eq!(chunks[0], EXPECTED_CHUNK_1);
+        assert_eq!(chunks[1], EXPECTED_CHUNK_2);
+        assert_eq!(chunks[2], EXPECTED_CHUNK_3);
+    }
+}
