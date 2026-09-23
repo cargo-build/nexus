@@ -41,6 +41,8 @@ Ensure the following are installed on your system:
    ./hinkali.sh --launch
    ```
    *(Inspect `hinkali.sh` to understand local error handling. Runtime logs are saved in the `./logs` directory.)*
+   The orchestrator HTTP API binds to `127.0.0.1` only — the local
+   single-user mode does not expose it to the network.
 2. Launch the TUI client in a separate terminal:
    ```bash
    cargo run -p tui

@@ -184,7 +184,8 @@ async fn main() -> anyhow::Result<(), WorkerError> {
     };
 
     let router = server::build_router(state);
-    let addr = SocketAddr::from(([0, 0, 0, 0], config.http_port));
+    // Loopback only: the local single-user mode exposes no network API.
+    let addr = SocketAddr::from(([127, 0, 0, 1], config.http_port));
 
     tracing::info!(address = %addr, "HTTP server listening");
     let listener = tokio::net::TcpListener::bind(addr).await?;
