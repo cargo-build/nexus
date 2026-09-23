@@ -73,3 +73,5 @@ $$
 The current cascade pipeline uses a JSON response field to invoke tools. At present, the model calls exactly one tool per query -- either sparse search or dense search (a hybrid approach is planned for the future).
 
 TF-IDF vectors serve as the sparse representation, using English stemming and vocabulary pruning. MiniLM embeddings provide the dense vectors via ONNX Runtime with mean pooling and L2 normalization.
+
+Retrieval is English-first: the sparse path stems English tokens and the default dense model (`all-MiniLM-L6-v2`) is English-only. Non-English documents and queries are untested; multilingual search needs a different stemmer or embedding model and is tracked by the retrieval-benchmark task.
