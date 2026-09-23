@@ -29,6 +29,17 @@ HISTORY_MAX_MESSAGES=4
 SUMMARY_INTERVAL=2
 ```
 
+## Storage
+Startup initializes all three stores before the orchestrator serves requests — the database layer and the vector store are created in `crates/lm-orchestrator/src/main.rs`, and a failure aborts startup. At runtime a Redis read failure falls back to MongoDB (`crates/lm-orchestrator/src/db/layer.rs`).
+
+| Store | Role | Persistence | Default endpoint |
+|---|---|---|---|
+| MongoDB | Conversation history and the sliding-window `summary` | Docker volume `mongodb_data` | `mongodb://localhost:27017` |
+| Redis | Cache of conversations (`conv:<id>` keys, TTL `REDIS_TTL_SECS`) | In-memory, TTL-bound | `redis://localhost:6379` |
+| Qdrant | Chunk vectors for dense search; the TF-IDF vocabulary in the collection metadata | Host directory `~/.config/hinkali/qdrant_storage` | `http://localhost:6334` (gRPC; HTTP API on 6333) |
+
+Losing Redis costs a cache refill, not data. MongoDB and Qdrant hold the durable state; back up the volume and the storage directory. Redis's role is under review, but replacing a store is a measured decision, not a speculative rewrite.
+
 ## Documents
 Each document is parsed into a tree data structure based on heading hierarchy. When chunks are extracted, the full heading path is prepended to each chunk as markdown headers. This ensures that every chunk retains its document context, so semantically related chunks remain discoverable even when separated by unrelated sections.
 
